@@ -1,0 +1,20 @@
+# dependências
+node_modules/
+
+# builds
+dist/
+coverage/
+
+# ambiente
+.env
+!.env.example
+
+# logs e SO
+*.log
+.DS_Store
+
+# documentos internos (não publicar)
+*.pdf
+
+# TS incremental cache
+*.tsbuildinfo

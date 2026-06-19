@@ -1,0 +1,45 @@
+# Orchestrates the three services: database (PostgreSQL), API (NestJS), web (React/nginx).
+# Run everything: docker compose up --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ovgs
+      POSTGRES_PASSWORD: ovgs
+      POSTGRES_DB: ovgs
+    ports:
+      # Host 5434 to avoid clashing with local instances on 5432/5433.
+      - '5434:5432'
+    volumes:
+      - ovgs_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ovgs']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://ovgs:ovgs@db:5432/ovgs?schema=public
+      PORT: '3033'
+      NODE_ENV: production
+      LOG_LEVEL: info
+    ports:
+      - '3033:3033'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - '8090:8090'
+    depends_on:
+      - api
+
+volumes:
+  ovgs_pgdata:
